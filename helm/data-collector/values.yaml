@@ -1,0 +1,7 @@
+image:
+  repository: "YOUR_DOCKER_REGISTRY/data-collector"
+  tag: "latest"
+
+service:
+  port: 5000
+  type: ClusterIP

@@ -1,0 +1,54 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build_test_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Docker Compose Build
+        run: docker-compose build
+
+      - name: Run Unit Tests
+        run: |
+          docker-compose run --rm data_collector pytest
+          docker-compose run --rm etl_manager pytest
+          docker-compose run --rm forecast_engine pytest
+          docker-compose run --rm sec_manager pytest
+          docker-compose run --rm fin_dash pytest
+
+      - name: Security Scan (Optional)
+        run: |
+          echo "Placeholder for running Trivy or other scans"
+
+      - name: Build & Push Docker Images
+        run: |
+          # docker login ...
+          # docker build ...
+          # docker push ...
+          echo "Push images to Docker registry if desired."
+
+      - name: Terraform Deploy
+        run: |
+          cd infrastructure
+          terraform init
+          terraform apply -auto-approve
+
+      - name: Helm Deploy
+        run: |
+          helm upgrade --install data-collector helm/data-collector
+          helm upgrade --install etl-manager helm/etl-manager
+          helm upgrade --install forecast-engine helm/forecast-engine
+          helm upgrade --install fin-dash helm/fin-dash
+          helm upgrade --install sec-manager helm/sec-manager

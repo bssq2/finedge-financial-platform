@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fin-dash-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fin-dash
+  template:
+    metadata:
+      labels:
+        app: fin-dash
+    spec:
+      containers:
+      - name: fin-dash
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+          - containerPort: {{ .Values.service.port }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fin-dash-service
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: fin-dash
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      protocol: TCP
+      name: http

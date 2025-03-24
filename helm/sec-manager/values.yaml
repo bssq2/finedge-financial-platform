@@ -1,0 +1,7 @@
+image:
+  repository: "YOUR_DOCKER_REGISTRY/sec-manager"
+  tag: "latest"
+
+service:
+  port: 9000
+  type: ClusterIP

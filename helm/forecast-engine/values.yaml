@@ -1,0 +1,7 @@
+image:
+  repository: "YOUR_DOCKER_REGISTRY/forecast-engine"
+  tag: "latest"
+
+service:
+  port: 5002
+  type: ClusterIP

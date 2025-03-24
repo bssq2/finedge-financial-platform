@@ -1,0 +1,7 @@
+image:
+  repository: "YOUR_DOCKER_REGISTRY/etl-manager"
+  tag: "latest"
+
+service:
+  port: 5001
+  type: ClusterIP

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: data-collector
+description: Helm chart for data_collector microservice
+type: application
+version: 0.1.0
+appVersion: "1.0"

@@ -1,0 +1,7 @@
+image:
+  repository: "YOUR_DOCKER_REGISTRY/fin-dash"
+  tag: "latest"
+
+service:
+  port: 8050
+  type: ClusterIP

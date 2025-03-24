@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  data-collector:
+    build: ./services/data-collector
+    container_name: data-collector
+    volumes:
+      - ./services/data-collector/src:/app/src
+      - ./services/data-collector/requirements.txt:/app/requirements.txt
+    # If you want to run on a specific port:
+    # ports:
+    #   - "8001:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  etl-manager:
+    build: ./services/etl-manager
+    container_name: etl-manager
+    volumes:
+      - ./services/etl-manager/src:/app/src
+      - ./services/etl-manager/requirements.txt:/app/requirements.txt
+    # ports:
+    #   - "8002:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  forecast-engine:
+    build: ./services/forecast-engine
+    container_name: forecast-engine
+    volumes:
+      - ./services/forecast-engine/src:/app/src
+      - ./services/forecast-engine/requirements.txt:/app/requirements.txt
+    # ports:
+    #   - "8003:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  fin-dash:
+    build: ./services/fin-dash
+    container_name: fin-dash
+    volumes:
+      - ./services/fin-dash/src:/app/src
+      - ./services/fin-dash/requirements.txt:/app/requirements.txt
+    # If your dash runs on 8050, for example:
+    ports:
+      - "8050:8050"
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["python", "src/app.py"]  # or whichever is your Dash entrypoint
+
+  sec-manager:
+    build: ./services/sec-manager
+    container_name: sec-manager
+    volumes:
+      - ./services/sec-manager/src:/app/src
+      - ./services/sec-manager/requirements.txt:/app/requirements.txt
+    # ports:
+    #   - "8005:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
