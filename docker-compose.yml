@@ -1,60 +1,54 @@
-version: '3.8'
+name: CI/CD
 
-services:
-  data-collector:
-    build: ./services/data-collector
-    container_name: data-collector
-    volumes:
-      - ./services/data-collector/src:/app/src
-      - ./services/data-collector/requirements.txt:/app/requirements.txt
-    # If you want to run on a specific port:
-    # ports:
-    #   - "8001:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
+on:
+  push:
+    branches: [main]
 
-  etl-manager:
-    build: ./services/etl-manager
-    container_name: etl-manager
-    volumes:
-      - ./services/etl-manager/src:/app/src
-      - ./services/etl-manager/requirements.txt:/app/requirements.txt
-    # ports:
-    #   - "8002:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
+jobs:
+  build_test_deploy:
+    runs-on: ubuntu-latest
 
-  forecast-engine:
-    build: ./services/forecast-engine
-    container_name: forecast-engine
-    volumes:
-      - ./services/forecast-engine/src:/app/src
-      - ./services/forecast-engine/requirements.txt:/app/requirements.txt
-    # ports:
-    #   - "8003:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  fin-dash:
-    build: ./services/fin-dash
-    container_name: fin-dash
-    volumes:
-      - ./services/fin-dash/src:/app/src
-      - ./services/fin-dash/requirements.txt:/app/requirements.txt
-    # If your dash runs on 8050, for example:
-    ports:
-      - "8050:8050"
-    environment:
-      - PYTHONUNBUFFERED=1
-    command: ["python", "src/app.py"]  # or whichever is your Dash entrypoint
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-  sec-manager:
-    build: ./services/sec-manager
-    container_name: sec-manager
-    volumes:
-      - ./services/sec-manager/src:/app/src
-      - ./services/sec-manager/requirements.txt:/app/requirements.txt
-    # ports:
-    #   - "8005:8000"
-    environment:
-      - PYTHONUNBUFFERED=1
+      # Docker Compose v2 calls:
+      - name: Docker Compose Build
+        run: docker compose build
+
+      - name: Run Unit Tests
+        run: |
+          docker compose run --rm data_collector pytest
+          docker compose run --rm etl_manager pytest
+          docker compose run --rm forecast_engine pytest
+          docker compose run --rm sec_manager pytest
+          docker compose run --rm fin_dash pytest
+
+      - name: Security Scan (Optional)
+        run: echo "Placeholder for running Trivy or other scans"
+
+      - name: Build & Push Docker Images
+        run: |
+          # docker login ...
+          # docker compose build ...
+          # docker compose push ...
+          echo "Push images to Docker registry if desired."
+
+      - name: Terraform Deploy
+        run: |
+          cd infrastructure
+          terraform init
+          terraform apply -auto-approve
+
+      - name: Helm Deploy
+        run: |
+          helm upgrade --install data-collector helm/data-collector
+          helm upgrade --install etl-manager helm/etl-manager
+          helm upgrade --install forecast-engine helm/forecast-engine
+          helm upgrade --install fin-dash helm/fin-dash
+          helm upgrade --install sec-manager helm/sec-manager
