@@ -18,15 +18,15 @@ jobs:
           python-version: '3.9'
 
       - name: Docker Compose Build
-        run: docker-compose build
+        run: docker compose build
 
       - name: Run Unit Tests
         run: |
-          docker-compose run --rm data_collector pytest
-          docker-compose run --rm etl_manager pytest
-          docker-compose run --rm forecast_engine pytest
-          docker-compose run --rm sec_manager pytest
-          docker-compose run --rm fin_dash pytest
+          docker compose run --rm data_collector pytest
+          docker compose run --rm etl_manager pytest
+          docker compose run --rm forecast_engine pytest
+          docker compose run --rm sec_manager pytest
+          docker compose run --rm fin_dash pytest
 
       - name: Security Scan (Optional)
         run: |
