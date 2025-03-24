@@ -17,12 +17,14 @@ jobs:
         with:
           python-version: '3.9'
 
-      # Docker Compose v2 calls:
       - name: Docker Compose Build
-        run: docker compose build
+        run: |
+          # Call Docker Compose v2 plugin
+          docker compose build
 
       - name: Run Unit Tests
         run: |
+          # Replace any old `docker-compose run` with `docker compose run`
           docker compose run --rm data_collector pytest
           docker compose run --rm etl_manager pytest
           docker compose run --rm forecast_engine pytest
@@ -30,7 +32,7 @@ jobs:
           docker compose run --rm fin_dash pytest
 
       - name: Security Scan (Optional)
-        run: echo "Placeholder for running Trivy or other scans"
+        run: echo "Placeholder for security scanning"
 
       - name: Build & Push Docker Images
         run: |
