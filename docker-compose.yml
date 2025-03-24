@@ -1,68 +1,55 @@
-version: "3.9"  # Docker Compose file format version
+name: CI/CD
 
-services:
-  data_collector:
-    build:
-      context: ./services/data-collector
-      dockerfile: Dockerfile
-    container_name: data_collector
-    environment:
-      - ENV=production
-      # add any additional environment variables here
-    ports:
-      - "8001:8000"
-    volumes:
-      - ./services/data-collector/src:/app/src
-    command: python src/main.py
+on:
+  push:
+    branches: [main]
 
-  etl_manager:
-    build:
-      context: ./services/etl-manager
-      dockerfile: Dockerfile
-    container_name: etl_manager
-    environment:
-      - ENV=production
-    ports:
-      - "8002:8000"
-    volumes:
-      - ./services/etl-manager/src:/app/src
-    command: python src/main.py
+jobs:
+  build_test_deploy:
+    runs-on: ubuntu-latest
 
-  forecast_engine:
-    build:
-      context: ./services/forecast-engine
-      dockerfile: Dockerfile
-    container_name: forecast_engine
-    environment:
-      - ENV=production
-    ports:
-      - "8003:8000"
-    volumes:
-      - ./services/forecast-engine/src:/app/src
-    command: python src/main.py
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  fin_dash:
-    build:
-      context: ./services/fin-dash
-      dockerfile: Dockerfile
-    container_name: fin_dash
-    environment:
-      - ENV=production
-    ports:
-      - "8004:8000"
-    volumes:
-      - ./services/fin-dash/src:/app/src
-    command: python src/main.py
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-  sec_manager:
-    build:
-      context: ./services/sec-manager
-      dockerfile: Dockerfile
-    container_name: sec_manager
-    environment:
-      - ENV=production
-    ports:
-      - "8005:8000"
-    volumes:
-      - ./services/sec-manager/src:/app/src
-    command: python src/main.py
+      - name: Docker Compose Build
+        run: docker compose build
+
+      - name: Run Unit Tests
+        run: |
+          docker compose run --rm data_collector pytest
+          docker compose run --rm etl_manager pytest
+          docker compose run --rm forecast_engine pytest
+          docker compose run --rm sec_manager pytest
+          docker compose run --rm fin_dash pytest
+
+      - name: Security Scan (Optional)
+        run: |
+          echo "Placeholder for running Trivy or other scans"
+
+      - name: Build & Push Docker Images
+        run: |
+          # Example commands (replace with your actual commands):
+          # docker login -u $DOCKER_USER -p $DOCKER_PASS
+          # docker compose build
+          # docker compose push
+          echo "Push images to Docker registry if desired."
+
+      - name: Terraform Deploy
+        run: |
+          cd infrastructure
+          terraform init
+          terraform apply -auto-approve
+
+      - name: Helm Deploy
+        run: |
+          helm upgrade --install data-collector helm/data-collector
+          helm upgrade --install etl-manager helm/etl-manager
+          helm upgrade --install forecast-engine helm/forecast-engine
+          helm upgrade --install fin-dash helm/fin-dash
+          helm upgrade --install sec-manager helm/sec-manager
