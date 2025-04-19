@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify
-from forecast import train_forecast_model, create_forecast
-from anomaly import detect_anomalies
-from model_store import model_repo
+import os
+from flask import Flask, jsonify, request
+from prophet import Prophet
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -9,40 +9,34 @@ app = Flask(__name__)
 def health():
     return jsonify({"status": "forecast_engine running"}), 200
 
-@app.route("/train_forecast", methods=["POST"])
-def train_forecast():
+@app.route("/forecast", methods=["POST"])
+def forecast():
     """
-    Expects JSON: {
+    Expects JSON of the form:
+    {
       "data": [
-        {"date": "2023-01-01", "revenue": 1000},
-        {"date": "2023-01-02", "revenue": 1200}
-      ]
+        {"ds": "2023-01-01", "y": 100},
+        {"ds": "2023-01-02", "y": 150},
+        ...
+      ],
+      "periods": 30
     }
     """
-    data = request.json.get("data", [])
-    model = train_forecast_model(data)
-    model_repo["forecast"] = model
-    return jsonify({"message": "Forecast model trained"}), 200
+    content = request.json
+    raw_data = content.get("data", [])
+    periods = content.get("periods", 30)
 
-@app.route("/predict_forecast", methods=["GET"])
-def predict_forecast():
-    days = int(request.args.get("days", 30))
-    model = model_repo.get("forecast")
-    if not model:
-        return jsonify({"error": "No model found"}), 400
-    fcst = create_forecast(model, days)
-    return fcst.to_json(orient="records"), 200
+    df = pd.DataFrame(raw_data)
+    if df.empty or "ds" not in df.columns or "y" not in df.columns:
+        return jsonify({"error": "Invalid input data"}), 400
 
-@app.route("/detect_anomalies", methods=["POST"])
-def detect_outliers():
-    """
-    Expects JSON: {
-      "data": [12.5, 13.1, 9999.0, 14.2, 13.6]
-    }
-    """
-    data = request.json.get("data", [])
-    labels = detect_anomalies(data)
-    return jsonify({"labels": labels.tolist()}), 200
+    model = Prophet()
+    model.fit(df)
+    future = model.make_future_dataframe(periods=periods)
+    forecast = model.predict(future)
+
+    forecast_output = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].to_dict(orient='records')
+    return jsonify({"forecast": forecast_output}), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5002)

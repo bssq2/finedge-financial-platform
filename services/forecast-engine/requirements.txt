@@ -1,5 +1,3 @@
-# services/forecast-engine/requirements.txt
-
 # Prophet build-time and runtime dependencies
 numpy<1.24
 pandas<2.0

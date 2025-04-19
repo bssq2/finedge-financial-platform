@@ -19,7 +19,6 @@ module "eks" {
   vpc_id          = var.vpc_id
   subnets         = var.subnets
   enable_irsa     = true
-  # additional config as needed
 }
 
 output "cluster_name" {

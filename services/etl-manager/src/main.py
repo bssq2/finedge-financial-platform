@@ -10,12 +10,6 @@ def health():
 
 @app.route("/batch", methods=["POST"])
 def batch():
-    """
-    Expects JSON: {
-      "input_path": "s3://some-bucket/financial-data/",
-      "output_path": "s3://some-bucket/processed/"
-    }
-    """
     input_path = request.json.get("input_path")
     output_path = request.json.get("output_path")
     run_batch_etl(input_path, output_path)
@@ -23,9 +17,6 @@ def batch():
 
 @app.route("/stream", methods=["POST"])
 def stream():
-    """
-    Expects JSON: { "kafka_bootstrap": "kafka:9092", "topic": "financial-data" }
-    """
     kafka_bootstrap = request.json.get("kafka_bootstrap", "kafka:9092")
     topic = request.json.get("topic", "financial-data")
     start_stream_processing(kafka_bootstrap, topic)

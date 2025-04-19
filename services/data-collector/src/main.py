@@ -15,7 +15,7 @@ def health():
 def collect_quickbooks():
     try:
         data = fetch_quickbooks_data()
-        # Push data to Kafka or do something with it
+        # TODO: Push data to Kafka, or do something with it
         return jsonify({"message": "QuickBooks data collected", "count": len(data)}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -24,7 +24,7 @@ def collect_quickbooks():
 def collect_stripe():
     try:
         data = fetch_stripe_data()
-        # Push to Kafka
+        # TODO: ...
         return jsonify({"message": "Stripe data collected", "count": len(data)}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -33,7 +33,6 @@ def collect_stripe():
 def collect_salesforce():
     try:
         data = fetch_salesforce_data()
-        # Push to Kafka
         return jsonify({"message": "Salesforce data collected", "count": len(data)}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

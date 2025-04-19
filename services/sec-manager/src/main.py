@@ -13,7 +13,9 @@ def health():
 
 @app.route("/login", methods=["POST"])
 def login():
-    # For demonstration, "admin"/"admin" is valid.
+    """
+    Basic example: "admin"/"admin".
+    """
     username = request.json.get("username")
     password = request.json.get("password")
 

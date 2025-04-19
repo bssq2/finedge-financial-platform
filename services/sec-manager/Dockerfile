@@ -1,6 +1,7 @@
-# services/sec-manager/Dockerfile
 FROM python:3.9
+
 ENV MAKEFLAGS="-j1"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gfortran \

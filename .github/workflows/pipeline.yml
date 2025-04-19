@@ -34,9 +34,9 @@ jobs:
 
       - name: Build & Push Docker Images
         run: |
-          # docker login ...
-          # docker build ...
-          # docker push ...
+          # docker login -u $DOCKER_USER -p $DOCKER_PASS
+          # docker compose build
+          # docker compose push
           echo "Push images to Docker registry if desired."
 
       - name: Terraform Deploy

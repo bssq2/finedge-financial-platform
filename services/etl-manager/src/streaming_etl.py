@@ -18,7 +18,7 @@ def start_stream_processing(kafka_bootstrap: str, topic: str):
         .load()
 
     parsed = df.select(from_json(col("value").cast("string"), schema).alias("data"))
-    # For demo, just output to console
+
     query = parsed.writeStream \
         .outputMode("append") \
         .format("console") \
