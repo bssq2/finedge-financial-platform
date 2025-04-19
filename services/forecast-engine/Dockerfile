@@ -1,9 +1,6 @@
 FROM python:3.9
 
-ENV SETUPTOOLS_USE_DISTUTILS=stdlib
-ENV MAKEFLAGS="-j1"
-
-# Install build essentials for cmdstanpy C++ toolchain
+# Install build essentials & C++ toolchain for cmdstanpy (used by Prophet)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
@@ -13,11 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy and install runtime dependencies
+# Copy & install Python dependencies
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
  && pip install --no-cache-dir -r requirements.txt
 
-# Copy source & run
+# Copy service code
 COPY src/ /app/src
+
+# Start the Flask app
 CMD ["python", "src/main.py"]
