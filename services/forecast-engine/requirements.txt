@@ -1,19 +1,23 @@
-# Prophet build-time and runtime dependencies
-numpy<1.24
-pandas<2.0
-Cython>=0.22
-pystan<3
-convertdate
-ephem
-setuptools-git
-LunarCalendar
-holidays
-tqdm
-matplotlib>=2.0.0
-
-# Prophet itself
-prophet==1.0
-
-# Other service dependencies
-Flask==2.2.3
-scikit-learn==1.2.2
+--- services/forecast-engine/requirements.txt
+- # Prophet build-time and runtime dependencies
+- numpy<1.24
+- pandas<2.0
+- Cython>=0.22
+- pystan<3
+- convertdate
+- ephem
+- setuptools-git
+- LunarCalendar
+- holidays
+- tqdm
+- matplotlib>=2.0.0
+-
+- # Prophet itself
+- prophet==1.0
+-
+- # Other service dependencies
+- Flask==2.2.3
+- scikit-learn==1.2.2
++ flask==2.2.3
++ scikit-learn==1.2.2
++ prophet
