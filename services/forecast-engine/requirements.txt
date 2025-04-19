@@ -1,4 +1,12 @@
 Flask==2.2.3
 pandas==1.5.3
-scikit-learn==1.2.2
-prophet
+scikit‑learn==1.2.2
+
+# Pin holidays to a version Prophet’s build script can ingest
+holidays==0.10.5
+
+# cmdstanpy backend (Prophet ≥1.1 uses this)
+cmdstanpy==1.0.8
+
+# A recent Prophet wheel that uses cmdstanpy (no pystan)
+prophet==1.1.4

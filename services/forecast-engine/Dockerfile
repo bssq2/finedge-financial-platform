@@ -1,6 +1,7 @@
+# Use official Python 3.9 image
 FROM python:3.9
 
-# Install build essentials & C++ toolchain for cmdstanpy (used by Prophet)
+# Install C++ toolchain & Python headers for cmdstanpy model build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
@@ -10,13 +11,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy & install Python dependencies
+# Copy & install Python dependencies in one shot
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
  && pip install --no-cache-dir -r requirements.txt
 
-# Copy service code
+# Bring in your service code
 COPY src/ /app/src
 
-# Start the Flask app
+# Launch the Flask app
 CMD ["python", "src/main.py"]
