@@ -4,44 +4,54 @@ services:
   data_collector:
     build:
       context: ./services/data-collector
-    image: your_registry/data-collector:latest
+    image: your-dockerhub-username/data-collector:latest
     env_file: .env
     ports:
       - "5000:5000"
     command: ["python", "src/main.py"]
+    volumes:                         # ← NEW
+      - ./tests:/app/tests:ro        # mounts all test code read‑only
 
   etl_manager:
     build:
       context: ./services/etl-manager
-    image: your_registry/etl-manager:latest
+    image: your-dockerhub-username/etl-manager:latest
     env_file: .env
     ports:
       - "5001:5001"
     command: ["python", "src/main.py"]
+    volumes:
+      - ./tests:/app/tests:ro
 
   forecast_engine:
     build:
       context: ./services/forecast-engine
-    image: your_registry/forecast-engine:latest
+    image: your-dockerhub-username/forecast-engine:latest
     env_file: .env
     ports:
       - "5002:5002"
     command: ["python", "src/main.py"]
+    volumes:
+      - ./tests:/app/tests:ro
 
   sec_manager:
     build:
       context: ./services/sec-manager
-    image: your_registry/sec-manager:latest
+    image: your-dockerhub-username/sec-manager:latest
     env_file: .env
     ports:
       - "9000:9000"
     command: ["python", "src/main.py"]
+    volumes:
+      - ./tests:/app/tests:ro
 
   fin_dash:
     build:
       context: ./services/fin-dash
-    image: your_registry/fin-dash:latest
+    image: your-dockerhub-username/fin-dash:latest
     env_file: .env
     ports:
       - "8050:8050"
     command: ["python", "src/main.py"]
+    volumes:
+      - ./tests:/app/tests:ro
