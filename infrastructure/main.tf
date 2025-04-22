@@ -5,7 +5,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      # UPDATED: the EKS module ≥ 20.x now expects AWS provider ≥ 5.95
+      # Compatible with terraform‑aws‑eks v20.x
       version = "~> 5.0"
     }
   }
@@ -18,11 +18,26 @@ provider "aws" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.36.0"          # pin the module version explicitly
-  # ───────────────────────────
+  version = "20.36.0"
+
+  # ─────────────────────────────────────────
+  # Mandatory inputs
+  # ─────────────────────────────────────────
   cluster_name    = var.cluster_name
   cluster_version = "1.23"
   vpc_id          = var.vpc_id
-  subnets         = var.subnets
-  enable_irsa     = true
+
+  # CHANGED: `subnets` ➞ `subnet_ids`
+  subnet_ids      = var.subnets
+
+  # Optional features
+  enable_irsa = true
+}
+
+output "cluster_name" {
+  value = module.eks.cluster_id
+}
+
+output "cluster_endpoint" {
+  value = module.eks.cluster_endpoint
 }
