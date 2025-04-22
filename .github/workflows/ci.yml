@@ -1,4 +1,4 @@
-# File: .github/workflows/cicd.yml
+# File: .github/workflows/ci.yml
 # ----------------------------------------
 name: CI/CD
 
@@ -6,78 +6,89 @@ on:
   push:
     branches: [main]
 
+env:
+  AWS_REGION: us-east-1            # keep in sync with Terraform var
+
 jobs:
   build_test_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # ───────────────────────────────────────
-      # Source checkout & Python toolchain
-      # ───────────────────────────────────────
-      - name: Checkout
-        uses: actions/checkout@v2
+    # ───────────────────────────────────────
+    # Source checkout & Python toolchain
+    # ───────────────────────────────────────
+    - name: Checkout
+      uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
 
-      # ───────────────────────────────────────
-      # Build services & run tests
-      # ───────────────────────────────────────
-      - name: Docker Compose Build
-        run: docker compose build
+    # ───────────────────────────────────────
+    # Build services & run tests
+    # ───────────────────────────────────────
+    - name: Docker Compose Build
+      run: docker compose build
 
-      - name: Run Unit Tests
-        run: |
-          docker compose run --rm data_collector pytest
-          docker compose run --rm etl_manager pytest
-          docker compose run --rm forecast_engine pytest
-          docker compose run --rm sec_manager pytest
-          docker compose run --rm fin_dash pytest
+    - name: Run Unit Tests
+      run: |
+        docker compose run --rm data_collector pytest
+        docker compose run --rm etl_manager pytest
+        docker compose run --rm forecast_engine pytest
+        docker compose run --rm sec_manager pytest
+        docker compose run --rm fin_dash pytest
 
-      # ───────────────────────────────────────
-      # Security scanning placeholder
-      # ───────────────────────────────────────
-      - name: Security Scan (Optional)
-        run: echo "Placeholder for running security scans"
+    # ───────────────────────────────────────
+    # Security scanning placeholder
+    # ───────────────────────────────────────
+    - name: Security Scan (Optional)
+      run: echo "Placeholder for running security scans"
 
-      # ───────────────────────────────────────
-      # Build & publish images (optional)
-      # ───────────────────────────────────────
-      - name: Build & Push Docker Images
-        run: |
-          echo "Push images to Docker registry if desired."
-          # docker login -u $DOCKER_USER -p $DOCKER_PASS
-          # docker compose build
-          # docker compose push
+    # ───────────────────────────────────────
+    # Build & publish images (optional)
+    # ───────────────────────────────────────
+    - name: Build & Push Docker Images
+      run: |
+        echo "Push images to Docker registry if desired."
+        # docker login -u $DOCKER_USER -p $DOCKER_PASS
+        # docker compose build
+        # docker compose push
 
-      # ───────────────────────────────────────
-      # Terraform provisioning
-      # ───────────────────────────────────────
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.7.2
+    # ───────────────────────────────────────
+    # Terraform provisioning
+    # ───────────────────────────────────────
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.7.2
 
-      - name: Terraform Deploy
-        working-directory: infrastructure
-        run: |
-          terraform init -input=false
-          terraform apply -auto-approve -input=false
+    # NEW: configure AWS credentials for Terraform
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      # ───────────────────────────────────────
-      # Helm install/upgrade (optional)
-      # ───────────────────────────────────────
-      - name: Setup Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.14.4
+    - name: Terraform Deploy
+      working-directory: infrastructure
+      run: |
+        terraform init -input=false
+        terraform apply -auto-approve -input=false
 
-      - name: Helm Deploy
-        run: |
-          helm upgrade --install data-collector helm/data-collector
-          helm upgrade --install etl-manager helm/etl-manager
-          helm upgrade --install forecast-engine helm/forecast-engine
-          helm upgrade --install fin-dash helm/fin-dash
-          helm upgrade --install sec-manager helm/sec-manager
+    # ───────────────────────────────────────
+    # Helm install/upgrade (optional)
+    # ───────────────────────────────────────
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.14.4
+
+    - name: Helm Deploy
+      run: |
+        helm upgrade --install data-collector helm/data-collector
+        helm upgrade --install etl-manager helm/etl-manager
+        helm upgrade --install forecast-engine helm/forecast-engine
+        helm upgrade --install fin-dash helm/fin-dash
+        helm upgrade --install sec-manager helm/sec-manager
