@@ -1,3 +1,5 @@
+# File: .github/workflows/cicd.yml
+# ----------------------------------------
 name: CI/CD
 
 on:
@@ -5,55 +7,77 @@ on:
     branches: [main]
 
 jobs:
-  build-test-deploy:
+  build_test_deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      # ───────────────────────────────────────
+      # Source checkout & Python toolchain
+      # ───────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v4
-      with:
-        python-version: "3.9"
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-    - name: Docker Compose Build
-      run: docker compose build
+      # ───────────────────────────────────────
+      # Build services & run tests
+      # ───────────────────────────────────────
+      - name: Docker Compose Build
+        run: docker compose build
 
-    - name: Run Unit Tests
-      run: |
-        # Mount tests into each container so pytest can find them
-        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests data_collector   pytest /app/tests/data_collector_tests
-        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests etl_manager     pytest /app/tests/etl_manager_tests
-        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests forecast_engine pytest /app/tests/forecast_engine_tests
-        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests sec_manager     pytest /app/tests/sec_manager_tests
-        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests fin_dash        pytest /app/tests/fin_dash_tests
+      - name: Run Unit Tests
+        run: |
+          docker compose run --rm data_collector pytest
+          docker compose run --rm etl_manager pytest
+          docker compose run --rm forecast_engine pytest
+          docker compose run --rm sec_manager pytest
+          docker compose run --rm fin_dash pytest
 
-    # ─── Optional security scan ────────────────────────────────────────────────
-    # - name: Trivy Scan
-    #   uses: aquasecurity/trivy-action@master
-    #   with:
-    #     scan-type: fs
-    #     ignore-unfixed: true
-    #     severity: HIGH,CRITICAL
+      # ───────────────────────────────────────
+      # Security scanning placeholder
+      # ───────────────────────────────────────
+      - name: Security Scan (Optional)
+        run: echo "Placeholder for running security scans"
 
-    # ─── Optional image push ───────────────────────────────────────────────────
-    # - name: Push Docker Images
-    #   env:
-    #     DOCKER_USER: ${{ secrets.DOCKER_USER }}
-    #     DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
-    #   run: |
-    #     echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-    #     docker compose push
+      # ───────────────────────────────────────
+      # Build & publish images (optional)
+      # ───────────────────────────────────────
+      - name: Build & Push Docker Images
+        run: |
+          echo "Push images to Docker registry if desired."
+          # docker login -u $DOCKER_USER -p $DOCKER_PASS
+          # docker compose build
+          # docker compose push
 
-    - name: Terraform Apply
-      working-directory: infrastructure
-      run: |
-        terraform init -input=false
-        terraform apply -auto-approve -input=false
+      # ───────────────────────────────────────
+      # Terraform provisioning
+      # ───────────────────────────────────────
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.2
 
-    - name: Helm Upgrade
-      run: |
-        helm upgrade --install data-collector  helm/data-collector
-        helm upgrade --install etl-manager     helm/etl-manager
-        helm upgrade --install forecast-engine helm/forecast-engine
-        helm upgrade --install fin-dash        helm/fin-dash
-        helm upgrade --install sec-manager     helm/sec-manager
+      - name: Terraform Deploy
+        working-directory: infrastructure
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve -input=false
+
+      # ───────────────────────────────────────
+      # Helm install/upgrade (optional)
+      # ───────────────────────────────────────
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.4
+
+      - name: Helm Deploy
+        run: |
+          helm upgrade --install data-collector helm/data-collector
+          helm upgrade --install etl-manager helm/etl-manager
+          helm upgrade --install forecast-engine helm/forecast-engine
+          helm upgrade --install fin-dash helm/fin-dash
+          helm upgrade --install sec-manager helm/sec-manager
