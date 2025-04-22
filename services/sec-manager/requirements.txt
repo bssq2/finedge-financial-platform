@@ -1,2 +1,5 @@
+# File: services/sec-manager/requirements.txt
+# -------------------------------------------
 Flask==2.2.3
 PyJWT==2.4.0
+pytest==8.2.0

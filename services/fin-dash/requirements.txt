@@ -1,4 +1,7 @@
+# File: services/fin-dash/requirements.txt
+# ----------------------------------------
 dash==2.7.0
 pandas==1.5.3
 requests==2.28.1
 plotly==5.11.0
+pytest==8.2.0

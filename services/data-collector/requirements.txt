@@ -1,4 +1,7 @@
+# File: services/data-collector/requirements.txt
+# ----------------------------------------------
 Flask==2.2.3
 requests==2.28.1
 python-quickbooks==0.8.1
 stripe==5.0.0
+pytest==8.2.0
