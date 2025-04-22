@@ -2,8 +2,6 @@
 # -----------------------------------------------
 Flask==2.2.3
 pandas==1.5.3
-scikit-learn==1.2.2          # fixed ASCII hyphen
-# Pin holidays to a version Prophet’s build script can ingest
-holidays==0.10.5.2           # updated from 0.10.5
+scikit-learn==1.2.2
 cmdstanpy==1.0.8
 prophet==1.1.4
