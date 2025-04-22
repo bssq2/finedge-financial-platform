@@ -1,2 +1,2 @@
-def test_etl_manager():
+def test_forecast_engine():
     assert True

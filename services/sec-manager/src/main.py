@@ -2,19 +2,23 @@ import os
 import jwt
 import datetime
 from flask import Flask, request, jsonify
+from middleware import token_required
 
 SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "change_in_production")
 
 app = Flask(__name__)
 
+
 @app.route("/health", methods=["GET"])
+@token_required
 def health():
     return jsonify({"status": "sec_manager running"}), 200
+
 
 @app.route("/login", methods=["POST"])
 def login():
     """
-    Basic example: "admin"/"admin".
+    Demo login ― replace with real auth provider in production.
     """
     username = request.json.get("username")
     password = request.json.get("password")
@@ -27,8 +31,9 @@ def login():
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
         return jsonify({"token": token}), 200
-    else:
-        return jsonify({"error": "Invalid credentials"}), 401
+
+    return jsonify({"error": "Invalid credentials"}), 401
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=9000)

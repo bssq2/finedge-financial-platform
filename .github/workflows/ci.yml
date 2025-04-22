@@ -1,0 +1,59 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Docker Compose Build
+      run: docker compose build
+
+    - name: Run Unit Tests
+      run: |
+        # Mount tests into each container so pytest can find them
+        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests data_collector   pytest /app/tests/data_collector_tests
+        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests etl_manager     pytest /app/tests/etl_manager_tests
+        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests forecast_engine pytest /app/tests/forecast_engine_tests
+        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests sec_manager     pytest /app/tests/sec_manager_tests
+        docker compose run --rm -v ${{ github.workspace }}/tests:/app/tests fin_dash        pytest /app/tests/fin_dash_tests
+
+    # ─── Optional security scan ────────────────────────────────────────────────
+    # - name: Trivy Scan
+    #   uses: aquasecurity/trivy-action@master
+    #   with:
+    #     scan-type: fs
+    #     ignore-unfixed: true
+    #     severity: HIGH,CRITICAL
+
+    # ─── Optional image push ───────────────────────────────────────────────────
+    # - name: Push Docker Images
+    #   env:
+    #     DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    #     DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+    #   run: |
+    #     echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+    #     docker compose push
+
+    - name: Terraform Apply
+      working-directory: infrastructure
+      run: |
+        terraform init -input=false
+        terraform apply -auto-approve -input=false
+
+    - name: Helm Upgrade
+      run: |
+        helm upgrade --install data-collector  helm/data-collector
+        helm upgrade --install etl-manager     helm/etl-manager
+        helm upgrade --install forecast-engine helm/forecast-engine
+        helm upgrade --install fin-dash        helm/fin-dash
+        helm upgrade --install sec-manager     helm/sec-manager

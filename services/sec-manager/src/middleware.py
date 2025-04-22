@@ -1,1 +1,28 @@
-# For any WSGI/Flask middlewares
+"""
+Reusable JWT authentication decorator.
+"""
+
+import os
+import jwt
+import functools
+from flask import request, jsonify
+
+SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "change_in_production")
+
+
+def token_required(f):
+    @functools.wraps(f)
+    def _wrapper(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return jsonify({"error": "Missing token"}), 401
+        try:
+            token = auth_header.split()[1]
+            jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token expired"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), 401
+        return f(*args, **kwargs)
+
+    return _wrapper
